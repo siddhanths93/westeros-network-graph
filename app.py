@@ -460,7 +460,11 @@ def compute_metrics(G: nx.Graph) -> dict:
             "strength": {},
         }
 
-    betweenness = nx.betweenness_centrality(G, weight="weight", normalized=True)
+    for u, v, d in G.edges(data=True):
+        d["distance"] = 1 / d["weight"]
+
+    betweenness = nx.betweenness_centrality(G, weight="distance", normalized=True)
+
     degree = nx.degree_centrality(G)
     strength = {
         node: sum(edge_data["weight"] for _, _, edge_data in G.edges(node, data=True))
@@ -499,16 +503,18 @@ def build_pyvis(G: nx.Graph, metrics: dict, color_by: str) -> Network:
     for node in G.nodes():
         house = get_house(node)
 
-        if color_by == "House":
-            color = HOUSE_COLORS.get(house, HOUSE_COLORS["OTHER"])
-        elif color_by == "Network Broker Score":
-            value = betweenness.get(node, 0) / max_bc if max_bc else 0
-            red = int(115 + 125 * value)
-            green = int(75 + 80 * value)
-            blue = int(20 + 25 * value)
-            color = f"#{red:02x}{green:02x}{blue:02x}"
-        else:
-            color = "#d7b65d"
+        # if color_by == "House":
+        #     color = HOUSE_COLORS.get(house, HOUSE_COLORS["OTHER"])
+        # elif color_by == "Network Broker Score":
+        #     value = betweenness.get(node, 0) / max_bc if max_bc else 0
+        #     red = int(115 + 125 * value)
+        #     green = int(75 + 80 * value)
+        #     blue = int(20 + 25 * value)
+        #     color = f"#{red:02x}{green:02x}{blue:02x}"
+        # else:
+        #     color = "#d7b65d"
+
+        color = HOUSE_COLORS.get(house, HOUSE_COLORS["OTHER"])
 
         node_strength = strength.get(node, 0)
         size = 11 + 44 * (node_strength / max_strength if max_strength else 0)
@@ -692,10 +698,12 @@ with st.sidebar:
         step=1,
     )
 
-    color_by = st.selectbox(
-        "Color nodes by",
-        ["House", "Network Broker Score", "None"],
-    )
+    # color_by = st.selectbox(
+    #     "Color nodes by",
+    #     ["House", "Network Broker Score", "None"],
+    # )
+    #
+    color_by = "House"
 
     st.markdown("---")
     st.markdown("### 🏰 House Legend")
@@ -725,8 +733,8 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
-    st.markdown("---")
-    st.caption("Data source: Andrew Beveridge's Network of Thrones dataset.")
+    # st.markdown("---")
+    # st.caption("Data source: Andrew Beveridge's Network of Thrones dataset.")
 
 
 if not seasons:
@@ -853,7 +861,24 @@ left_col, right_col = st.columns(2)
 with left_col:
     st.markdown("### Network Brokers")
     st.markdown(
-        '<div class="section-subtitle">Characters ranked by betweenness centrality — the bridge-builders of the realm.</div>',
+        """
+        <div class="section-subtitle">
+            Characters ranked by broker score, using betweenness centrality.
+            A higher score means the character acts as a bridge between different groups in the network.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="insight-box" style="margin-top:0.6rem; margin-bottom:1rem;">
+            <b>How to read this:</b><br>
+            Broker score ranges from <b>0 to 1</b>. A score near 0 means the character is not a major bridge.
+            A higher score means more character connections flow through them. In simple terms, these are the people
+            who help connect separate houses, factions, or story clusters.
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -932,7 +957,18 @@ with footer_cols[2]:
         f"""
         <div class="stat-box">
             <div class="stat-number">{bridge_count}</div>
-            <div class="stat-label">Bridge Links</div>
+            <div class="stat-label">Critical Bridges</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="insight-box">
+            <b>Critical Bridges:</b> These are fragile connections that hold parts of the network together.
+            If one of these links is removed, a group of characters may become disconnected from the rest of the realm.
+            A value of <b>0</b> means the selected network is not dependent on any single relationship link.
         </div>
         """,
         unsafe_allow_html=True,
