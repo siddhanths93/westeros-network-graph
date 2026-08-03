@@ -49,9 +49,18 @@ st.markdown(
     color: var(--text);
 }
 
+header[data-testid="stHeader"] {
+    height: 0rem;
+    background: transparent;
+}
+
+div[data-testid="stDecoration"] {
+    display: none;
+}
+
 .block-container {
     max-width: 1500px;
-    padding-top: 1.6rem;
+    padding-top: 0.4rem;
     padding-bottom: 3rem;
 }
 
@@ -91,6 +100,18 @@ hr {
 }
 
 /* Header */
+
+.portfolio-label {
+    font-family: Inter, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #8f7a3d;
+    text-align: center;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+}
+
 .main-title {
     font-family: Cinzel, serif;
     font-size: 2.45rem;
@@ -641,6 +662,11 @@ def render_rank_bar(name: str, value: float, max_value: float, color: str, label
 # ──────────────────────────────────────────────────────────────
 # App
 # ──────────────────────────────────────────────────────────────
+st.markdown(
+    '<div class="portfolio-label">SID’S PORTFOLIO</div>',
+    unsafe_allow_html=True,
+)
+
 st.markdown(
     '<div class="main-title"> WESTEROS NETWORK GRAPH</div>',
     unsafe_allow_html=True,
